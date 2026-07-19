@@ -1,0 +1,13 @@
+# Notebook stays local — it is the workshop, not the product
+*.ipynb
+.ipynb_checkpoints/
+
+# Debug artifacts from failed checks
+debug-*.png
+debug-*.html
+
+# Local environment
+venv/
+__pycache__/
+*.pyc
+.env
