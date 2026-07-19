@@ -42,7 +42,7 @@ from playwright.async_api import async_playwright
 TIMEZONE = ZoneInfo("Europe/Amsterdam")
 WINDOW_START_HOUR = 8       # 08:00 local
 WINDOW_END_HOUR = 18        # until 18:00 local (exclusive)
-WEEKDAYS_ONLY = False
+WEEKDAYS_ONLY = True
 
 CHECK_INTERVAL_SECONDS = 120
 RUN_DURATION_MINUTES = 50   # leaves headroom before the next hourly run
