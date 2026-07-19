@@ -1,0 +1,58 @@
+name: Utrecht studio monitor
+
+on:
+  # Hourly on weekdays. The UTC range is deliberately wider than the real
+  # window; monitor.py enforces Mon-Fri 08:00-18:00 Europe/Amsterdam itself,
+  # so daylight saving needs no maintenance here.
+  schedule:
+    - cron: '0 5-17 * * 1-5'
+  # Lets you trigger a run by hand from the Actions tab.
+  workflow_dispatch:
+
+# Never let two runs overlap.
+concurrency:
+  group: utrecht-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: write        # needed to commit state.json back
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 58
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          playwright install --with-deps chromium
+
+      - name: Run the monitor
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: python monitor.py
+
+      - name: Save state back to the repository
+        # Runs even if the monitor exited non-zero, so a partial run is not lost.
+        if: always()
+        run: |
+          git config user.name  "utrecht-monitor"
+          git config user.email "actions@github.com"
+          git add state.json
+          if git diff --staged --quiet; then
+            echo "No state change."
+          else
+            git commit -m "state: $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git pull --rebase --autostash
+            git push
+          fi
